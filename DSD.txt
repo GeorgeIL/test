@@ -1,0 +1,196 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+
+// IMPORTANT TODO \\
+// IMPORTANT TODO \\
+// IMPORTANT TODO \\
+
+// TODO: Make it month based
+
+// TODO: Add debts (miron stocks)
+// TODO: Add a way to pay debts (reduce amount payed from debt, reduce assets as well if need e.g. stocks / other)
+
+
+// TODO: Make recurring transactions + Renewaled transations
+// e.g spotify => reuccuring till chancelled // Microsoft office recurreing 12 months => renwed for 1 more year
+
+
+// IMPORTANT TODO \\
+// IMPORTANT TODO \\
+// IMPORTANT TODO \\
+
+
+
+Table Users {
+  // This is the apps Users document that will hold all of the data and fields related
+  // To each user that has signed up to the app
+  _id string [pk]
+  email string [unique]
+  hash_password string
+  created_at ISO_Time 
+  username string
+  profilePic string // Will redirect to pic location
+  isAdmin bool // True || False
+  isDeleted bool
+  mainCurrency Currency // !!! The currency the app will use
+
+  Financial_Account LIST_Embedded_Object
+}
+
+
+
+
+
+// START-------- Categories --------START \\
+// Will be created separately before input
+Table Category_Main {
+  id MONGO_ID [pk]
+  name string
+  color string // How it will show in the GUI
+  colorPattern string // How it will show in the GUI
+}
+
+// All of the different things I record
+Table Category_Sub {
+  id MONGO_ID [pk]
+  Category_Main Category_Main
+  name string 
+}
+// END---------- Categories ----------END \\
+
+
+
+
+// START-------- Financial_Accounts --------START \\
+Table Currency {
+  id MONGO_ID [pk]
+  currencyName string
+  currencySymbol char // '$' / '₪'..
+  currencyCode string // "USD" / "ILS"..
+}
+
+Table Balance {
+  id MONGO_ID [pk]
+  currency Currency
+  amount double
+}
+
+// Wallet / Bank Acc..
+Table Financial_Account {
+  id MONGO_ID [pk]
+  name string
+  balances LIST_Balance
+}
+
+Table Bank_Account { // Type of Financial_Account
+  id MONGO_ID [pk]
+  acoount_number long 
+  branch_location string
+  branch_number long
+  credit_cards LIST_Credit_Cards [note: "Cards that belong to Acc"]
+}
+Table Credit_Card {
+  id MONGO_ID [pk]
+  issuer string
+  name string 
+  limit double
+  dueDate datetime
+  transactionRecord LIST_transactionRecord
+}
+
+// END---------- Financial_Accounts ----------END \\
+
+
+// START-------- Transactions --------START \\
+
+Table transactionRecord { // CURRENT
+  id MONGO_ID [pk]
+  date datetime
+  from string
+  to string
+  transactionsList LIST_transaction // The transactionsList of how the main transaction is split up
+  payments int [note: "תשלומים"]
+  Financial_Account Financial_Account [note: "OR"]
+  credit_card credit_card [note: "OR"]
+}
+
+Table transaction { 
+  id MONGO_ID [pk]
+  category Category_Sub
+  type string // Expense / Income / Refund / Short Loan (short term to a friend / other) / Deposit / Withdrawal
+  amount double
+  description string 
+}
+
+// END---------- Transactions ----------END \\
+
+
+// START-------- Loans --------START \\
+
+// Bank loans, Mortgages, Other loans
+Table loan { 
+  id MONGO_ID [pk]
+  goal string
+  fromDate datetime
+  tillDate datetime
+  name string
+  lenderName string
+  currency Currency
+  originalLoanAmount double // Loan amount
+  description string 
+  loanPath LIST_LoanPath // Can have many paths or 1
+}
+
+Table loanPath {
+  pathName string
+  yearlyInterest double // In %
+  totalInterset double // In value (₪ / $..) 
+  monthlyPaymentIntrest double 
+  monthlyPaymentKeren double 
+  monthsLeftToPay int 
+}
+
+// END---------- Loans ----------END \\
+
+
+// START-------- MISC --------START \\
+
+Table forexCash { // Foreign Currency
+  id MONGO_ID [pk]
+  currency Currency
+  amount double // In value 
+  location string // Where it's stored
+  valueInMainCurrency double // WILL USE USER's MAIN CURRENCY 
+}
+
+Table otherValuableAssets { // e.g. watch / car
+  id MONGO_ID [pk]
+  name string
+  worthIn Currency // What currency
+  amount double // In value 
+  location string // Where it's stored
+  valueInMainCurrency double // WILL USE USER's MAIN CURRENCY 
+}
+
+// MOD Alternative Tracker // 
+
+Table MODTreat {
+  name string
+  practitionerName string // Who gave treatment
+  date datetime
+  location string // Where it was made
+  cost double // In value 
+  noteToAdd string
+}
+
+Table MODAlternativeTracker {
+  id MONGO_ID [pk]
+  year int
+  limitToUseYearly double // In value 
+  MODTeartments LIST_MODTreat
+}
+
+
+
+// END---------- MISC ----------END \\
